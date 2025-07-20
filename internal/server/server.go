@@ -16,10 +16,10 @@ type Server struct {
 
 // NewServer - функция для создания нового экземпляра сервера
 func NewServer(l *log.Logger) *Server {
-
+	// Создаём свою переменную-маршрутизатор
 	mux := http.NewServeMux()
 
-	// Регистрация хендлеров
+	// Регистрация хендлеров из пакета `handlers`
 	mux.HandleFunc("/", handlers.HandleRootRequest)
 	mux.HandleFunc("/upload", handlers.ProcessUploadRequest)
 
@@ -33,7 +33,7 @@ func NewServer(l *log.Logger) *Server {
 		IdleTimeout:  15 * time.Second,
 	}
 
-	// Возврат нового экземпляра сервера с настроенными параметрами
+	// Возврат нового экземпляра сервера с настроенными параметрами и логгера
 	return &Server{
 		Logger: l,
 		Server: server,

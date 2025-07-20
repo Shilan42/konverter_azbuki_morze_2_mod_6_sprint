@@ -25,27 +25,30 @@ func HandleRootRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	// Закрываем файл после завершения работы
 	defer file.Close()
+
 	// Читаем содержимое файла в память. Если произошла ошибка при чтении файла, возвращаем сообщение об ошибке
 	data, err := os.ReadFile("index.html")
 	if err != nil {
 		http.Error(w, "func handleRootRequest: failed to read file", http.StatusInternalServerError)
 		return
 	}
+
 	// Устанавливаем заголовок Content-Type для корректного отображения HTML
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	// Отправляем содержимое файла в ответ
 	w.Write(data)
 }
 
 // processUploadRequest обрабатывает загрузку файла и конвертацию данных
 func ProcessUploadRequest(w http.ResponseWriter, r *http.Request) {
-	// Проверяем метод запроса
+	// Проверяем метод запроса и если это не MethodPost, то возвращаем ошибку
 	if r.Method != http.MethodPost {
 		http.Error(w, "func processUploadRequest: HTTP method not allowed. Only POST requests are supported", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Получение файла из формы
+	// Получение файла из поля формы index.html = "name"
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
 		http.Error(w, "func processUploadRequest: failed to retrieve file from request form", http.StatusBadRequest)
