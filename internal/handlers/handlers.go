@@ -18,7 +18,7 @@ handleRootRequest - основная функция-обработчик кор�
 */
 func HandleRootRequest(w http.ResponseWriter, r *http.Request) {
 	// Используем http.ServeFile для открытия, чтения и отправки файла
-	http.ServeFile(w, r, `C:\Users\ppv20\Desktop\Dev\Projects of the 2nd mod\konverter_azbuki_morze_2_mod_6_sprint\index.html`)
+	http.ServeFile(w, r, "./index.html")
 }
 
 // processUploadRequest обрабатывает загрузку файла и конвертацию данных
