@@ -17,41 +17,22 @@ handleRootRequest - основная функция-обработчик кор�
 обрабатывает GET-запросы к корневому URL и возвращает HTML-страницу
 */
 func HandleRootRequest(w http.ResponseWriter, r *http.Request) {
-	// Открываем файл index.html для чтения. Если произошла ошибка при открытии файла, возвращаем сообщение об ошибке
-	file, err := os.Open("index.html")
-	if err != nil {
-		http.Error(w, "func handleRootRequest: failed to open file", http.StatusInternalServerError)
-		return
-	}
-	// Закрываем файл после завершения работы
-	defer file.Close()
-
-	// Читаем содержимое файла в память. Если произошла ошибка при чтении файла, возвращаем сообщение об ошибке
-	data, err := os.ReadFile("index.html")
-	if err != nil {
-		http.Error(w, "func handleRootRequest: failed to read file", http.StatusInternalServerError)
-		return
-	}
-
-	// Устанавливаем заголовок Content-Type для корректного отображения HTML
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	// Отправляем содержимое файла в ответ
-	w.Write(data)
+	// Используем http.ServeFile для открытия, чтения и отправки файла
+	http.ServeFile(w, r, "./index.html")
 }
 
 // processUploadRequest обрабатывает загрузку файла и конвертацию данных
 func ProcessUploadRequest(w http.ResponseWriter, r *http.Request) {
 	// Проверяем метод запроса и если это не MethodPost, то возвращаем ошибку
 	if r.Method != http.MethodPost {
-		http.Error(w, "func processUploadRequest: HTTP method not allowed. Only POST requests are supported", http.StatusMethodNotAllowed)
+		http.Error(w, "HTTP method not allowed. Only POST requests are supported", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Получение файла из поля формы index.html = "name"
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
-		http.Error(w, "func processUploadRequest: failed to retrieve file from request form", http.StatusBadRequest)
+		http.Error(w, "failed to retrieve file from request form", http.StatusBadRequest)
 		return
 	}
 	// Закрываем файл после работы с ним
@@ -60,14 +41,14 @@ func ProcessUploadRequest(w http.ResponseWriter, r *http.Request) {
 	// Использование прямого чтения в буфер фиксированного размера
 	buf := bytes.Buffer{}
 	if _, err := io.Copy(&buf, file); err != nil {
-		http.Error(w, "func processUploadRequest: failed to read file content", http.StatusInternalServerError)
+		http.Error(w, "failed to read file content", http.StatusInternalServerError)
 		return
 	}
 
 	// Передаем данные в функцию автоопределения из пакета service, которую мы создали, чтобы получить переконвертируемую строку
 	str, err := service.DetectMorseOrText(buf.String())
 	if err != nil {
-		http.Error(w, "func processUploadRequest: DetectMorseOrText: failed to convert data", http.StatusInternalServerError)
+		http.Error(w, "failed to convert data", http.StatusInternalServerError)
 		return
 	}
 
@@ -79,7 +60,7 @@ func ProcessUploadRequest(w http.ResponseWriter, r *http.Request) {
 	// Создаем локальный файл для записи результатов конвертации строки
 	resultFile, err := os.Create(outputFilename)
 	if err != nil {
-		http.Error(w, "func processUploadRequest: failed to create file", http.StatusInternalServerError)
+		http.Error(w, "failed to create file", http.StatusInternalServerError)
 		return
 	}
 	// Закрываем файл после работы с ним
@@ -87,11 +68,17 @@ func ProcessUploadRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Записываем результаты в файл
 	if _, err := fmt.Fprintf(resultFile, "%s:\n", str); err != nil {
-		http.Error(w, "func processUploadRequest: failed to write data to output file.", http.StatusInternalServerError)
+		http.Error(w, "failed to write data to output file", http.StatusInternalServerError)
 		return
 	}
 
-	// Возвращаем результат конвертации в ответ
+	// Устанавливаем заголовок Content-Type
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(str))
+
+	// Возвращаем результат конвертации в ответ
+	_, err = w.Write([]byte(str))
+	if err != nil {
+		http.Error(w, "failed to write response to client", http.StatusInternalServerError)
+		return
+	}
 }

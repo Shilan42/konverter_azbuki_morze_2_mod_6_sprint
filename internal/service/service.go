@@ -18,7 +18,7 @@ func DetectMorseOrText(text string) (string, error) {
 		Если строка пустая, возвращаем ошибку
 	*/
 	if text = strings.TrimSpace(text); text == "" {
-		return "", errors.New("func DetectMorseOrText: empty string")
+		return "", errors.New("the input text for conversion must not be empty")
 	}
 	/*
 		Инициализируем счётчики для символов морзе (точки и тире)
